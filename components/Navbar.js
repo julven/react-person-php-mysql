@@ -19,9 +19,9 @@ let Navbar = ({adminState, adminSetter}) => {
 
 		<nav className="navbar navbar-expand-sm bg-primary ">
 		  <div className="container ">
-		    <a className="navbar-brand text-white" href="#/" >Navbar</a>
+		    <a className="navbar-brand text-white" href="#/" >React Person</a>
 		    <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-		      <span className="navbar-toggler-icon"></span>
+		      <p className="text-white fs-1 mb-1">&#9776;</p>
 		    </button>
 		    <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
 		      <div className="navbar-nav ms-auto ">

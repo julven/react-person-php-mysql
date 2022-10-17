@@ -9,7 +9,8 @@ let reduxListState = {
 	gender: "",
 	test: "",
 	end: false,
-	summary: {}
+	summary: {},
+	load: false,
 }
 
 let reduxListReducer = (state = reduxListState, {type, payload}) => {
@@ -52,6 +53,8 @@ let reduxListReducer = (state = reduxListState, {type, payload}) => {
 
 		case "SET_SUMMARY" : return state = { ...state, summary: payload }
 
+		case "SET_LOAD" : return state = { ...state, load: payload}
+
 		default: return state;
 	}
 }
@@ -80,6 +83,7 @@ let mapReduxList = {
 				reset: () => {dispatch({type: "RESET"})},
 				resetPage: () => {dispatch({type: "RESET_PAGE"})},
 				setSummary: data => {dispatch({type: "SET_SUMMARY", payload: data})},
+				setLoad: data => {dispatch({type: "SET_LOAD", payload: data})},
 			}
 		}
 	}

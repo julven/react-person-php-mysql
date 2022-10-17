@@ -40,6 +40,11 @@ function create_connection () {
 		"root",
 		"",
 		"reactperson",
+
+		 // "sql307.epizy.com",
+   //      "epiz_32791845",
+   //      "30x2FgPRxBTa",
+   //      "epiz_32791845_reactperson"
 	);
 
 	if($connection->connect_error) {

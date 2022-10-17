@@ -20,6 +20,9 @@ let ListPages = ({listState, listSetter}) => {
 	}
 
 	let getList = async (data) => {
+
+		listSetter.setLoad(true)
+
 		let statement = await query.getList(data);
 		let resp = await server(statement)
 		// console.log(resp.length)
@@ -33,6 +36,8 @@ let ListPages = ({listState, listSetter}) => {
 			listSetter.setPages(listState.pages.filter( i => i !== last))
 			listSetter.setEnd(true)
 		}
+
+		listSetter.setLoad(false)
 	}
 
 

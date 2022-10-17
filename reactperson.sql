@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 17, 2022 at 07:49 AM
+-- Generation Time: Oct 17, 2022 at 12:52 PM
 -- Server version: 10.4.21-MariaDB
 -- PHP Version: 8.0.10
 
@@ -20,6 +20,31 @@ SET time_zone = "+00:00";
 --
 -- Database: `reactperson`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `react_person_admin`
+--
+
+CREATE TABLE `react_person_admin` (
+  `react_person_admin_id` int(11) NOT NULL,
+  `react_person_admin_username` varchar(256) NOT NULL,
+  `react_person_admin_password` varchar(256) NOT NULL,
+  `react_person_admin_fname` varchar(256) NOT NULL,
+  `react_person_admin_lname` varchar(256) NOT NULL,
+  `react_person_admin_bday` date NOT NULL,
+  `react_person_admin_gender` varchar(32) NOT NULL,
+  `react_person_admin_token` varchar(32) NOT NULL DEFAULT substr(md5(rand()),1,8),
+  `react_person_admin_token_expire` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `react_person_admin`
+--
+
+INSERT INTO `react_person_admin` (`react_person_admin_id`, `react_person_admin_username`, `react_person_admin_password`, `react_person_admin_fname`, `react_person_admin_lname`, `react_person_admin_bday`, `react_person_admin_gender`, `react_person_admin_token`, `react_person_admin_token_expire`) VALUES
+(2, 'admintest', 'admintest', 'julven', 'condor', '1990-07-07', 'male', '278e164', '2022-10-17 17:31:44');
 
 -- --------------------------------------------------------
 
@@ -99,7 +124,6 @@ INSERT INTO `react_person_list` (`react_person_list_id`, `react_person_list_fnam
 (55, 'Matthew', 'Nguyen', '1970-10-04', 'male', 'single', '2022-10-16 13:46:19'),
 (56, 'Antonio', 'Reyes', '1969-02-21', 'male', 'divorced', '2022-10-16 13:46:20'),
 (57, 'Matthew', 'Phillips', '1953-10-07', 'male', 'married', '2022-10-16 13:46:21'),
-(58, 'Owen', 'Henry', '1969-10-04', 'male', 'single', '2022-10-16 13:46:23'),
 (59, 'Erika', 'Day', '1998-04-24', 'female', 'widowed', '2022-10-16 13:46:25'),
 (60, 'Chris', 'Jensen', '1981-11-07', 'male', 'widowed', '2022-10-16 13:46:26'),
 (61, 'Warren', 'Dixon', '1975-05-07', 'male', 'deceased', '2022-10-16 13:46:27'),
@@ -125,11 +149,17 @@ INSERT INTO `react_person_list` (`react_person_list_id`, `react_person_list_fnam
 (81, 'Savannah', 'Rice', '1965-02-17', 'female', 'single', '2022-10-16 13:46:56'),
 (82, 'Bertha', 'Hale', '1948-10-19', 'female', 'married', '2022-10-16 13:46:57'),
 (83, 'Kaylee', 'Rogers', '1988-11-24', 'female', 'married', '2022-10-16 13:46:59'),
-(84, 'Aubree', 'Perry', '1982-05-28', 'female', 'divorced', '2022-10-17 02:12:09');
+(84, 'Aubree Plaza', 'Perry', '1982-05-28', 'female', 'divorced', '2022-10-17 02:12:09');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `react_person_admin`
+--
+ALTER TABLE `react_person_admin`
+  ADD PRIMARY KEY (`react_person_admin_id`);
 
 --
 -- Indexes for table `react_person_list`
@@ -142,10 +172,16 @@ ALTER TABLE `react_person_list`
 --
 
 --
+-- AUTO_INCREMENT for table `react_person_admin`
+--
+ALTER TABLE `react_person_admin`
+  MODIFY `react_person_admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `react_person_list`
 --
 ALTER TABLE `react_person_list`
-  MODIFY `react_person_list_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
+  MODIFY `react_person_list_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

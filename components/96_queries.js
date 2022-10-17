@@ -1,3 +1,6 @@
+// window.console.log = function ()  {}
+
+
 const query = {
 
 	login: async (data) => {

@@ -6,6 +6,7 @@ let ContextServicesProvider = (props) => {
 	// let {useLocation} = ReactRouterDOM;
 	let { useState, useEffect } = React;
 	let SERVER_URL = "http://localhost/reactperson/server.php";
+	//let SERVER_URL = "https://julven.epizy.com/reactperson/server.php";
 	// let location = useLocation();
 	let [listLink, setListLink] = useState("/list")
 

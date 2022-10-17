@@ -274,7 +274,8 @@ let reduxListState = {
 	gender: "",
 	test: "",
 	end: false,
-	summary: {}
+	summary: {},
+	load: false,
 }
 
 let reduxListReducer = (state = reduxListState, {type, payload}) => {
@@ -317,6 +318,8 @@ let reduxListReducer = (state = reduxListState, {type, payload}) => {
 
 		case "SET_SUMMARY" : return state = { ...state, summary: payload }
 
+		case "SET_LOAD" : return state = { ...state, load: payload}
+
 		default: return state;
 	}
 }
@@ -345,6 +348,7 @@ let mapReduxList = {
 				reset: () => {dispatch({type: "RESET"})},
 				resetPage: () => {dispatch({type: "RESET_PAGE"})},
 				setSummary: data => {dispatch({type: "SET_SUMMARY", payload: data})},
+				setLoad: data => {dispatch({type: "SET_LOAD", payload: data})},
 			}
 		}
 	}
@@ -1122,12 +1126,16 @@ let ListMain = ({listSetter, listState, adminState}) => {
 	let param = useParams()
 	let location = useLocation();
 	let { server, setListLink, listLink } = useContext(ContextServices)
+	
 
 	let getList = async (data) => {
+		listSetter.setLoad(true)
 		let statement = await query.getList(data);
 		let resp = await server(statement)
 		// console.log(resp)
 		listSetter.setList(resp)
+		listSetter.setLoad(false)
+		
 	}
 
 	useEffect( () => {
@@ -1197,6 +1205,14 @@ let ListMain = ({listSetter, listState, adminState}) => {
 				
 				<ListSearch />
 				<div className="table-responsive">
+					{ listState.load ? 
+					<div className="text-center my-4">
+						<div className="spinner-border text-primary" role="status">
+						  <span className="visually-hidden">Loading...</span>
+						</div>
+					</div>
+
+					:
 					<table className="table ">
 						<thead>
 							<tr>
@@ -1227,7 +1243,7 @@ let ListMain = ({listSetter, listState, adminState}) => {
 							
 							
 						</tbody>
-					</table>
+					</table>}
 				</div>
 				<ListPages />
 
@@ -1259,6 +1275,9 @@ let ListPages = ({listState, listSetter}) => {
 	}
 
 	let getList = async (data) => {
+
+		listSetter.setLoad(true)
+
 		let statement = await query.getList(data);
 		let resp = await server(statement)
 		// console.log(resp.length)
@@ -1272,6 +1291,8 @@ let ListPages = ({listState, listSetter}) => {
 			listSetter.setPages(listState.pages.filter( i => i !== last))
 			listSetter.setEnd(true)
 		}
+
+		listSetter.setLoad(false)
 	}
 
 
@@ -1338,10 +1359,12 @@ let ListSearch = ({listState, listSetter, adminState}) => {
 		e.preventDefault();
 		listSetter.reset()
 		listSetter.resetPage()
-		// search();
+		search();
 	}
 
 	let search = async (click) => {
+
+		listSetter.setLoad(true)
 		// console.log({listState})
 
 		let { search, gender, status, filter, page} = listState
@@ -1354,7 +1377,7 @@ let ListSearch = ({listState, listSetter, adminState}) => {
 		if(click) listSetter.resetPage()
 		listSetter.setList(resp)
 
-		
+		listSetter.setLoad(false)
 
 	}
 
@@ -1615,6 +1638,7 @@ let ContextServicesProvider = (props) => {
 	// let {useLocation} = ReactRouterDOM;
 	let { useState, useEffect } = React;
 	let SERVER_URL = "http://localhost/reactperson/server.php";
+	//let SERVER_URL = "https://julven.epizy.com/reactperson/server.php";
 	// let location = useLocation();
 	let [listLink, setListLink] = useState("/list")
 

@@ -25,10 +25,12 @@ let ListSearch = ({listState, listSetter, adminState}) => {
 		e.preventDefault();
 		listSetter.reset()
 		listSetter.resetPage()
-		// search();
+		search();
 	}
 
 	let search = async (click) => {
+
+		listSetter.setLoad(true)
 		// console.log({listState})
 
 		let { search, gender, status, filter, page} = listState
@@ -41,7 +43,7 @@ let ListSearch = ({listState, listSetter, adminState}) => {
 		if(click) listSetter.resetPage()
 		listSetter.setList(resp)
 
-		
+		listSetter.setLoad(false)
 
 	}
 

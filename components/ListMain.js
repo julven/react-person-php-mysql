@@ -5,12 +5,16 @@ let ListMain = ({listSetter, listState, adminState}) => {
 	let param = useParams()
 	let location = useLocation();
 	let { server, setListLink, listLink } = useContext(ContextServices)
+	
 
 	let getList = async (data) => {
+		listSetter.setLoad(true)
 		let statement = await query.getList(data);
 		let resp = await server(statement)
 		// console.log(resp)
 		listSetter.setList(resp)
+		listSetter.setLoad(false)
+		
 	}
 
 	useEffect( () => {
@@ -80,6 +84,14 @@ let ListMain = ({listSetter, listState, adminState}) => {
 				
 				<ListSearch />
 				<div className="table-responsive">
+					{ listState.load ? 
+					<div className="text-center my-4">
+						<div className="spinner-border text-primary" role="status">
+						  <span className="visually-hidden">Loading...</span>
+						</div>
+					</div>
+
+					:
 					<table className="table ">
 						<thead>
 							<tr>
@@ -110,7 +122,7 @@ let ListMain = ({listSetter, listState, adminState}) => {
 							
 							
 						</tbody>
-					</table>
+					</table>}
 				</div>
 				<ListPages />
 

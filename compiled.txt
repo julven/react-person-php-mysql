@@ -1,0 +1,1866 @@
+const query = {
+
+	login: async (data) => {
+		let statement = {
+			login: "",
+			read: {
+				react_person_admin: [
+					"select * from react_person_admin where "+
+					"react_person_admin_username = ? and react_person_admin_password = ?",
+					"ss",
+					[data['user'], data['pass']]
+
+				]
+			}
+		}
+
+		return statement;
+	},
+	adminUpdate: async (data) => {
+		let {
+			react_person_admin_fname,
+			react_person_admin_lname,
+			react_person_admin_bday,
+			react_person_admin_gender,
+			react_person_admin_id
+		} = data;
+		let statement = {
+			edit: {
+				react_person_admin: [
+					"update react_person_admin set react_person_admin_fname = ?, "+
+					"react_person_admin_lname = ?, react_person_admin_bday = ?, "+
+					"react_person_admin_gender = ? where react_person_admin_id = ?",
+					"ssssi",
+					[
+						react_person_admin_fname,
+						react_person_admin_lname,
+						react_person_admin_bday,
+						react_person_admin_gender,
+						react_person_admin_id
+					]
+
+				]
+			}
+		}
+
+		return statement;
+	},
+	adminCheckPassword : async (data) => {
+		let statement = {
+			read: {
+				react_person_admin: [
+					"select count(*) as password_match from react_person_admin "+
+					"where react_person_admin_password = ? and react_person_admin_id = ?",
+					"si",
+					[data.react_person_admin_password, data.react_person_admin_id]
+				]
+			}
+		}
+
+		return statement;
+	},
+	adminChangePassword: async (data) => {
+
+		let statement = {
+			edit: {
+				react_person_admin: [
+					"update react_person_admin set react_person_admin_password = ? "+
+					"where react_person_admin_id = ?",
+					"si",
+					[data.conf, data.id]
+				]
+			}
+		}
+
+		return statement;
+	},
+	listAddPerson: async (data) => {
+		let {
+			react_person_list_fname,
+			react_person_list_lname,
+			react_person_list_bday,
+			react_person_list_gender,
+			react_person_list_status
+		} = data;
+		let statement = {
+			write: {
+				react_person_list: [
+					"insert into react_person_list ( react_person_list_fname, "+
+					"react_person_list_lname, react_person_list_bday, "+
+					"react_person_list_gender, react_person_list_status) values (?,?,?,?,?)",
+					"sssss",
+					[
+						react_person_list_fname,
+						react_person_list_lname,
+						react_person_list_bday,
+						react_person_list_gender,
+						react_person_list_status
+					]
+				]
+			}
+		}
+
+		return statement;
+	},
+	getList: async (data) => {
+
+		let filter = "(`react_person_list_fname` like ? OR `react_person_list_lname` like ?) ";
+		let values = [
+			`${data.gender}%`, 
+			`${data.status}%`, 
+			`%${data.search}%`, 
+			`%${data.search}%`, 
+			(data.page - 1) * 10
+		];
+		let types = "ssssi";
+		let [a, b, c, d, e] = values;
+		if (data.filter == 'fname') { 
+			filter = "`react_person_list_fname` like ? ";		
+			values = [a, b, c, e];
+			types = "sssi"
+		}
+		else if (data.filter == 'lname') {
+			filter = "`react_person_list_lname` like ? ";
+			values = [a, b, d, e];
+			types = "sssi"
+		}
+
+		let statement = {
+			read: {
+				react_person_list: [
+					"SELECT * FROM `react_person_list` WHERE "+
+					"`react_person_list_gender` like ? AND "+
+					"`react_person_list_status` like ? AND "+ 
+					filter+
+					"ORDER BY react_person_list_date_added DESC limit ?,10",
+					types,
+					values
+				]
+			}
+		}
+
+		return statement
+	},
+	getPerson: async id => {
+		let statement = {
+			read: {
+				react_person_list: [
+					"select * from react_person_list where react_person_list_id = ?",
+					"i",
+					[id]
+				]
+			}
+		}
+
+		return statement
+	},
+	updatePerson : async (data) => {
+		let statement = {
+			edit: {
+				react_person_list: [
+					"update react_person_list set `react_person_list_fname` = ?, "+
+					"`react_person_list_lname` = ?, `react_person_list_bday` = ?, "+
+					"`react_person_list_gender` = ?, `react_person_list_status`= ? "+
+					"where react_person_list_id = ?",
+					"sssssi",
+					[
+						data.react_person_list_fname,
+						data.react_person_list_lname,
+						data.react_person_list_bday,
+						data.react_person_list_gender,
+						data.react_person_list_status,
+						data.react_person_list_id
+					]
+				]
+			}
+		}
+
+		return statement
+	},
+	listSummary: async () => {
+		let statement = {
+			read: {
+				react_person_list: [
+					"select count(*) as total, "+
+					"count(case when react_person_list_status = 'single' then 1 end) as single, "+
+					"count(case when react_person_list_status = 'married' then 1 end) as married, "+
+					"count(case when react_person_list_status = 'divorced' then 1 end) as divorced, "+
+					"count(case when react_person_list_status = 'widowed' then 1 end) as widowed, "+
+					"count(case when react_person_list_status = 'deceased' then 1 end) as deceased, "+
+					"count(case when react_person_list_gender = 'male' then 1 end) as male, "+
+					"count(case when react_person_list_gender = 'female' then 1 end) as female "+
+					"from react_person_list",
+					"",
+					[]
+
+				]
+			}
+		}
+
+		return statement
+	}
+}
+
+let reduxAdminState = {
+	logged: false
+	
+}
+
+let reduxAdminReducer = (state = reduxAdminState, {type, payload}) => {
+	switch(type) {
+		case "test": 
+			console.log("admin test")
+		
+		case "ADMIN_LOGIN": 
+			return state = { ...state, ...payload ,logged: true}	
+		
+		case "ADMIN_LOGOUT": 
+			return state = { logged: false }
+		case "ADMIN_SET": 
+			console.log({["ADMIN_SET"]: payload})
+			return state = {
+				...state, 
+				...payload
+			}
+		
+		default: return state;
+	}
+}
+
+let reduxAdminContext = React.createContext();
+let reduxAdminStore = Redux.createStore(reduxAdminReducer)
+
+let mapReduxAdmin = {
+	stateToProps: state => {
+
+		return {adminState: state}
+	},
+	dispatchToProps: dispatch => {
+
+		return {
+			adminSetter: {
+				test: () => { dispatch({type: "test", payload: null})},
+				login: (data) => { dispatch({type: "ADMIN_LOGIN", payload: data})},
+				logout: () => { dispatch({type: "ADMIN_LOGOUT", payload: null})},
+				adminSet: data => { dispatch({type: "ADMIN_SET", payload: data})}
+			}
+		}
+	}
+}
+
+const adminConnect = ReactRedux.connect(
+		mapReduxAdmin.stateToProps, mapReduxAdmin.dispatchToProps, null, {context: reduxAdminContext}
+	);
+
+let reduxListState = {
+	list: [],
+	page: 1,
+	pages: [1],
+	search: "",
+	status: "",
+	filter: "",
+	gender: "",
+	test: "",
+	end: false,
+	summary: {}
+}
+
+let reduxListReducer = (state = reduxListState, {type, payload}) => {
+	switch(type) {
+		case "test": 
+			
+			return state = {...state, test: payload || "test"}
+		
+		case "SET_LIST" : return state = { ...state, list: payload }
+		
+		case "SET_PAGE": return state = { ...state, page: payload }
+
+		case "SET_PAGES": return state = { ...state, pages: payload }	
+
+		case "SET_SEARCH": return state = { ...state, search: payload }	
+
+		case "SET_FILTER": return state = { ...state, filter: payload }
+
+		case "SET_STATUS": return state = { ...state, status: payload }
+
+		case "SET_GENDER": return state = { ...state, gender: payload }
+
+		case "SET_END": return state = { ...state, end: payload }
+
+		case "RESET" : return state = {
+			...state,
+			search: "",
+			filter: "",
+			status: "",
+			gender: "",
+			end: false
+		}
+
+		case "RESET_PAGE" : return state = {
+			...state,
+			page: 1,
+			pages: [1],
+			end: false
+		}
+
+		case "SET_SUMMARY" : return state = { ...state, summary: payload }
+
+		default: return state;
+	}
+}
+
+let reduxListContext = React.createContext();
+let reduxListStore = Redux.createStore(reduxListReducer)
+
+let mapReduxList = {
+	stateToProps: state => {
+
+		return {listState: state}
+	},
+	dispatchToProps: dispatch => {
+
+		return {
+			listSetter: {
+				test:   () => {   dispatch({type: "test", payload: null})},
+				setList: data => {dispatch({type: "SET_LIST", payload: data})},
+				setPage: data => {dispatch({type: "SET_PAGE", payload: data})},
+				setPages: data => {dispatch({type: "SET_PAGES", payload: data})},
+				setSearch: data => {dispatch({type: "SET_SEARCH", payload: data})} ,
+				setFilter: data => {dispatch({type: "SET_FILTER", payload: data})},
+				setStatus: data => {dispatch({type: "SET_STATUS", payload: data})},
+				setGender: data => {dispatch({type: "SET_GENDER", payload: data})},
+				setEnd: data => {dispatch({type: "SET_END", payload: data})},
+				reset: () => {dispatch({type: "RESET"})},
+				resetPage: () => {dispatch({type: "RESET_PAGE"})},
+				setSummary: data => {dispatch({type: "SET_SUMMARY", payload: data})},
+			}
+		}
+	}
+}
+
+
+const listConnect = ReactRedux.connect(
+		mapReduxList.stateToProps, mapReduxList.dispatchToProps, null, {context: reduxListContext}
+	);
+const withConnect = Component => {
+	Component = Redux.compose(
+			listConnect,
+			adminConnect,
+		) (Component)
+
+	return Component
+}
+
+let Admin = () => {
+
+	let { Outlet, useNavigate} = ReactRouterDOM
+	let { useEffect, useState } = React
+
+	let navigate = useNavigate()
+
+	
+
+	let changeTab = (link) => {
+
+		navigate(link)
+	}
+
+
+
+	return(
+		<div>
+		<h2>Admin</h2>
+			<nav className="nav"onClick={e=>e.preventDefault()}>
+			  <a className="nav-link "href="#/" onClick={() => changeTab("/admin")}>Account</a>
+			  <a className="nav-link " href="#/" onClick={() => changeTab("/admin/password")}>Password</a>
+			</nav>
+			<hr className="mt-0 mb-3"/>
+			<Outlet />
+		</div>
+
+	)
+}
+let AdminAccount = ({adminSetter, adminState}) => {
+
+	let { useState, useEffect, useContext } = React;
+	let { server, validate } =useContext(ContextServices)
+
+	let [form, setForm] = useState({})
+	let [load, setLoad] = useState(true)
+
+
+	let fieldChange = (e) => {
+		// console.log(e.target.value, e.target.name)
+		setForm({
+			...form,
+			[ e.target.name ] : e.target.value
+		})
+	}
+
+	let update = async () => {
+
+		let valid = validate([
+				form.react_person_admin_fname,
+				form.react_person_admin_lname,
+				form.react_person_admin_bday,
+				form.react_person_admin_gender,
+			]);
+
+		// console.log(valid)
+		// return
+
+		if(!valid) {
+			alert("all fields must be filled!");
+			return;
+		}
+
+		let statement = await query.adminUpdate(form)
+		// console.log(JSON.stringify(statement))
+
+		let resp = await server(statement)
+		console.log(resp)
+		if(resp.affected_rows > 0) {
+			alert("admin account successfully updated!")
+			return;
+		}else alert("nothing has changed...")
+	}
+
+	useEffect( () => {
+		setForm({
+			...form,
+			...adminState
+		})
+	}, [])
+
+	useEffect( () => {
+		// console.log({form})
+		if(load) setLoad(false)
+	}, [form])
+
+	if(load) return (<p>loading...</p>);
+
+	else return(
+
+		<div className="row justify-content-center">
+			<div className="col-12 col-sm-8 col-md-6 col-lg-4">
+				<h4>Account</h4>
+				<p className="mb-1">
+					Username: {adminState.react_person_admin_username}<br/> 
+					ID: {adminState.react_person_admin_id}
+				</p>
+				<div className="mb-1">
+				  <label  className="form-label mb-0">First Name</label>
+				  <input value={form.react_person_admin_fname}
+				  onChange={e=>fieldChange(e)}
+				  name="react_person_admin_fname"
+				  type="text" className="form-control" />
+				</div>
+
+				<div className="mb-1">
+				  <label  className="form-label mb-0">Last Name</label>
+				  <input  value={form.react_person_admin_lname}
+				  onChange={e=>fieldChange(e)}
+				  name="react_person_admin_lname"
+				  type="text" className="form-control" />
+				</div>
+
+				<div className="mb-1" style={{width: '200px'}}>
+				  <label  className="form-label mb-0">Birthday</label>
+				  <input  value={form.react_person_admin_bday}
+				  onChange={e=>fieldChange(e)}
+				  name="react_person_admin_bday"
+				  type="date" className="form-control" />
+				</div>
+
+				<div>	
+					<label>Gender</label>
+					<div className="d-flex">
+						 <input onChange={e=>fieldChange(e)}
+						  checked={form.react_person_admin_gender == "male"}
+						 className="form-check-input mx-2" type="radio" 
+						 name="react_person_admin_gender" value="male"/> male
+						 <input  onChange={e=>fieldChange(e)} 
+						 checked={form.react_person_admin_gender == "female"}
+						 className="form-check-input mx-2" type="radio" 
+						 name="react_person_admin_gender" value="female"/> female
+					</div>
+				</div>
+
+				<div className="text-end mt-3"> 
+					<button onClick={update}
+					className="btn btn-primary">Update</button>
+				</div>
+				
+			</div>
+		</div>
+
+		
+
+
+
+	)
+}
+
+AdminAccount = withConnect(AdminAccount)
+let AdminLogin = ({adminSetter, adminState}) => {
+
+	let { useEffect, useState, useContext } = React;
+	let { server } = useContext(ContextServices);
+
+	let [form, setForm] = useState({
+		user: "",
+		pass: ""
+	})
+
+
+	let login = async (e) => {
+	
+		let statement = await query.login(form)
+		let resp = await server(statement)
+
+		if(resp == false) {
+			alert("wrong username or password");
+			return;
+		}
+		adminSetter.login(resp)
+	}
+
+	useEffect( () => {
+		// console.log(adminState)
+	}, [adminState])
+
+	
+
+	return(
+		<div>
+			<div className="container">
+				<div className="row justify-content-center mt-5">
+					<div className="col-auto col-sm-7 col-md-6 col-lg-5 ">
+						<div className="card shadow-sm" style={{maxWidth: '350px'}}>
+							 <div className="card-body">
+						    <h5 className="card-title">Admin Login</h5>
+						    <div className="mb-1">
+							    <label  className="form-label mb-0">Username</label>
+							    <input value={form.user} onChange={e=>setForm({...form, user: e.target.value})}
+							    type="text" className="form-control" />
+							
+							  </div>
+
+	  					    <div className="mb-3 ">
+							    <label className="form-label mb-0">Password</label>
+							    <input  value={form.pass} onChange={e=>setForm({...form, pass: e.target.value})}
+							    type="Password" className="form-control"/>
+							  
+							  </div>
+							  <div className="text-end">
+							  	<button 
+							  	onClick={() => login()}
+							  	type="button" className="btn btn-success">Login</button>
+							  </div>
+							  
+						  </div>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+	)
+}
+
+AdminLogin = withConnect(AdminLogin)
+let AdminPassword = ({adminState}) => {
+
+	let { useEffect, useState, useContext} = React;
+	let {server} = useContext(ContextServices)
+
+	let [form, setForm] = useState({
+		old: "",
+		now: "",
+		conf: ""
+	})
+
+	let fieldChange = e => {
+
+
+		setForm({
+			...form,
+			[e.target.name] : e.target.value
+		})
+	}
+
+	let update = async () => {
+		console.log(form)
+		let { old, now, conf} = form;
+
+		if(old.length < 5 || now.length < 5 || conf.length < 5) {
+			alert("all fields must have a minimum of 4 letters")
+			return;
+		}
+
+		if(conf !== now) {
+			alert("Confirmed password did not match")
+			return;
+		}
+		let { react_person_admin_id } = adminState;
+		
+
+		let statement = await query.adminCheckPassword({
+			react_person_admin_id,
+			react_person_admin_password: form.old
+		});
+
+		// console.log(statement)
+		let resp = await server(statement)
+
+		// console.log(resp)
+
+		if(resp[0].password_match < 1) {
+			alert("old password is incorrect!")
+			return;
+		}
+
+		let statement2 = await query.adminChangePassword({conf: form.conf, id: react_person_admin_id});
+		let resp2 = await server(statement2);
+		console.log({resp2})
+		if(resp2.affected_rows > 0) {
+			setForm({
+				old: "",
+				now: "",
+				conf: ""
+			})
+			alert("password successfully updated")
+			return;
+		}
+		else alert("nothing has changed")
+	}
+
+
+	useEffect(() => {
+
+	}, [])
+
+	return(
+		<div className="row justify-content-center">
+			<div className="col-12 col-sm-8 col-md-6 col-lg-4">
+				<h4>Password</h4>
+				<div className="mb-1">
+				  <label  className="form-label mb-0">Old Password</label>
+				  <input value={form.old} name="old"
+				  onChange={e=>fieldChange(e)}
+				  type="password" className="form-control" />
+				</div>
+
+				<div className="mb-1">
+				  <label  className="form-label mb-0">New Password</label>
+				  <input value={form.now} name="now"
+				  onChange={e=>fieldChange(e)}
+				  type="password" className="form-control" />
+				</div>
+
+				<div className="mb-1">
+				  <label  className="form-label mb-0">Confirm</label>
+				  <input value={form.conf} name="conf"
+				  onChange={e=>fieldChange(e)}
+				  type="password" className="form-control" />
+				</div>
+
+				<div className="text-end mt-3"> 
+					<button onClick={update}
+					className="btn btn-primary">Update</button>
+				</div>
+				
+			</div>
+		</div>
+
+	)
+}
+
+AdminPassword = withConnect(AdminPassword)
+let Home = ({adminState, listState, listSetter}) => {
+
+	let { useState, useEffect, useContext } = React
+	let { Link } = ReactRouterDOM
+	let { server } = useContext(ContextServices)
+	let [load, setLoad] = useState(true)
+
+	let getSummary = async () => {
+
+		let statement =  await query.listSummary()
+
+		let resp = await server(statement)
+
+		listSetter.setSummary(resp[0])
+		// console.log(resp)
+		setLoad(false)
+	}
+
+	useEffect( () => {
+		// console.log(Object.keys(listState.summary).length)
+		getSummary()
+
+	}, [])
+
+	return(
+		<div className="row justify-content-center">
+		<h3>Home</h3>
+
+			{ adminState.logged &&
+			<div className="col-12 col-sm-6 col-md-5 col-lg-4">
+				<h4>Account Summary</h4>
+				<hr className="mt-0"/>
+				<table className="table table-sm table-borderless">
+					<tbody >
+						<tr>
+							<td>Username</td>
+							<td className="text-capitalize">{adminState.react_person_admin_username}</td>
+						</tr>
+						<tr>
+							<td>First Name</td>
+							<td className="text-capitalize">{adminState.react_person_admin_fname}</td>
+						</tr>
+						<tr>
+							<td>Last Name</td>
+							<td className="text-capitalize">{adminState.react_person_admin_lname}</td>
+						</tr>
+						<tr>
+							<td>Birthday</td>
+							<td className="text-capitalize">{adminState.react_person_admin_bday}</td>
+						</tr>
+						<tr>
+							<td>Gender</td>
+							<td className="text-capitalize">{adminState.react_person_admin_gender}</td>
+						</tr>
+						<tr>
+							<td colSpan="2" ><Link to="/admin">view</Link></td>
+						</tr>
+					</tbody>
+				</table>
+				<hr className="mt-0"/>
+			</div>	}
+
+			<div className="col-12 col-sm-6 col-md-5 col-lg-4">
+				<h4>List Summary</h4>
+				<hr className="mt-0"/>
+				{ !load &&
+				<table className="table table-sm table-borderless">
+					<tbody>
+						<tr>
+							<td>Total</td>
+							<td>{listState.summary.total}</td>
+						</tr>
+						<tr>
+							<td>Male</td>
+							<td>{listState.summary.male}</td>
+						</tr>
+						<tr>
+							<td>Female</td>
+							<td>{listState.summary.female}</td>
+						</tr>
+						<tr>
+							<td>Single</td>
+							<td>{listState.summary.single}</td>
+						</tr>
+						<tr>
+							<td>Married</td>
+							<td>{listState.summary.married}</td>
+						</tr>
+						<tr>
+							<td>Divorced</td>
+							<td>{listState.summary.divorced}</td>
+						</tr>
+						<tr>
+							<td>Widowed</td>
+							<td>{listState.summary.widowed}</td>
+						</tr>
+						<tr>
+							<td>Deceased</td>
+							<td>{listState.summary.deceased}</td>
+						</tr>
+						<tr>
+							<td colSpan="2" ><Link to="/list">view</Link></td>
+						</tr>
+					</tbody>
+				</table>
+				}
+				<hr className="mt-0"/>
+			</div>
+		</div>
+
+	)
+}
+
+Home = withConnect(Home)
+let List = () => {
+
+	let { Outlet, Link } = ReactRouterDOM
+
+	return(
+		<div>
+			{/*<Link to="/list/add">add</Link> |
+			<Link to="/list/view/99"> view</Link> |
+			<Link to="/list/edit/99"> edit</Link>*/}
+			<Outlet />
+		</div>
+	)
+}
+let ListAdd = () => {
+	let { useContext, useEffect, useState } = React
+	let {server, randomPerson, validate} = useContext(ContextServices);
+
+
+	let [form, setForm] = useState({
+		react_person_list_fname: "",
+		react_person_list_lname: "",
+		react_person_list_gender: "",
+		react_person_list_status:  "",
+		react_person_list_bday:  ""
+	})
+
+	let fieldChange =e=> {
+
+		setForm({
+			...form,
+			[e.target.name] : e.target.value
+		})
+	}
+
+	let getRandomPerson = async () => {
+
+		let resp = await randomPerson();
+		setForm({
+			...form,
+			...resp,
+		})
+	}
+
+	let addPerson = async () => {
+
+		let field = [
+			form.react_person_list_fname,
+			form.react_person_list_lname,
+			form.react_person_list_gender,
+			form.react_person_list_status,
+			form.react_person_list_bday,
+		]
+
+		let valid = validate(field)
+		console.log(valid)
+
+		if(!validate) {
+			alert("all fields must not be empty!");
+			return;
+		}
+
+		let statement = await query.listAddPerson(form)
+
+		// console.log(JSON.stringify(statement))
+
+		let resp  = await server(statement);
+
+		if(resp.insert_id > 0) {
+			setForm({
+				react_person_list_fname: "",
+				react_person_list_lname: "",
+				react_person_list_gender: "",
+				react_person_list_status:  "",
+				react_person_list_bday:  ""
+			})
+			alert("new person successfully added!")
+			return
+		}
+
+		else {
+			alert("failed to add new person...")
+			return;
+		}
+	}
+
+	useEffect( () => {
+		console.log(form)
+	}, [form])
+
+	return (
+		<div>
+		<h4>Add Person</h4>
+			<div className="row justify-content-center">
+
+				<ListForm type="add" form={form} fieldChange={fieldChange}/>
+
+				<div className="text-end mt-3 d-grid gap-2 d-sm-block"> 
+					<button onClick={() => navigate(-1)}
+					className="btn btn-outline-secondary me-1">Back</button>
+					<button onClick={getRandomPerson}
+					className="btn btn-outline-primary me-1">Autofill</button>
+					<button  onClick={addPerson}
+					className="btn btn-primary">Submit</button>
+
+				</div>
+			</div>
+
+			
+		</div>
+	)
+}
+let ListEdit = ({listState}) => {
+
+	let { useEffect, useState, useContext} = React
+	let { server, validate, listLink } = useContext(ContextServices)
+	let { useNavigate, useParams } = ReactRouterDOM
+	let navigate = useNavigate()
+	let param = useParams()
+	
+
+	let [ id, setId] = useState(null)
+	let [form, setForm] = useState({})
+	let [load, setLoad] = useState(true)
+
+	let fieldChange = (e) => {
+
+		setForm({
+			...form,
+			[e.target.name] : e.target.value
+		})
+	}
+
+	let getPerson = async (id) => {
+
+		let statemet = await query.getPerson(id)
+
+		let resp = await server(statemet)
+
+		console.log(resp)
+		if(resp.length == 0) {
+			navigate("/list")
+			return;
+		}
+
+		setForm(resp[0])
+		setLoad(false)
+
+	}
+
+	let updatePerson = async() => {
+		let data = [
+			form.react_person_list_fname,
+			form.react_person_list_lname,
+			form.react_person_list_bday,
+			form.react_person_list_gender,
+			form.react_person_list_status
+		];
+
+		let valid = validate(data)
+
+		if(!valid) {
+			alert("all fields must not be empty!")
+			return
+		}
+
+		console.log(form)
+
+		let statemet = await query.updatePerson(form)
+
+		let resp = await server(statemet)
+
+		console.log(resp)
+
+		if(resp.affected_rows > 0) {
+			alert("person info successfuly updated!");
+			return
+		}
+
+		alert("nothing has changed...")
+
+	}
+
+	useEffect( () => {
+
+		if("id" in param && !isNaN(param.id)) {
+
+			let newId = Math.ceil(Math.abs(Number(param.id)))
+			// console.log(newId)
+			getPerson(newId)
+
+		}
+		else navigate("/list")
+
+		console.log(initLink)
+	}, [])
+
+	useEffect(() => {
+		console.log({edit: listLink})
+	}, [form])
+
+
+	if(load) return (<p>loading...</p>)
+	return (
+		<div>
+			<h4>Edit Person</h4>
+			<div className="row justify-content-center">
+				<div className="col-12 col-sm-8 col-md-6 col-lg-4">
+					<p 
+						className="mb-2"> ID: {form.react_person_list_id}<br/>
+						Added: {form.react_person_list_date_added}
+					</p>
+				</div>
+			</div>
+			<div className="row justify-content-center">
+				
+				<ListForm form={form} fieldChange={fieldChange}/>
+
+				<div className="text-end mt-3 "> 
+					
+					<button onClick={()=>navigate(-1)}
+					className="btn btn-outline-secondary me-1">Back</button>
+
+
+					<button onClick={updatePerson}
+					className="btn btn-primary ">Update</button>
+
+				</div>
+			</div>
+
+			
+		</div>
+	)
+}
+
+ListEdit = withConnect(ListEdit)
+let ListForm = ({form, fieldChange}) => {
+
+	let { useEffect, useState } = React
+
+	
+
+	useEffect( () => {
+		console.log(form)
+	}, [])
+
+
+
+	return (
+		
+			<div className="col-12 col-sm-8 col-md-6 col-lg-4">
+		
+			
+				<div className="mb-1">
+				  <label  className="form-label mb-0">First Name</label>
+				  <input onChange={e=>fieldChange(e)}
+				  value={form.react_person_list_fname}
+				  name="react_person_list_fname"
+				  type="text" className="form-control" />
+				</div>
+
+				<div className="mb-1">
+				  <label  className="form-label mb-0">Last Name</label>
+				  <input  onChange={e=>fieldChange(e)}
+				  value={form.react_person_list_lname}
+				  name="react_person_list_lname"
+				  type="text" className="form-control" />
+				</div>
+
+				<div className="mb-1" style={{maxWidth:'200px'}}>
+				  <label  className="form-label mb-0">Birthday</label>
+				  <input  onChange={e=>fieldChange(e)}
+				  value={form.react_person_list_bday}
+				  name="react_person_list_bday"
+				  type="date" className="form-control" />
+				</div>
+
+				<div>	
+					<label className="form-label mb-0">Gender</label>
+					<div className="d-flex">
+						 <input onChange={e=>fieldChange(e)}
+						 checked={form.react_person_list_gender == "male"}
+						 className="form-check-input mx-2" type="radio" 
+						 name="react_person_list_gender" value="male"/> male
+						 <input   onChange={e=>fieldChange(e)}
+						 checked={form.react_person_list_gender == "female"}
+						 className="form-check-input mx-2" type="radio" 
+						 name="react_person_list_gender" value="female"/> female
+					</div>
+				</div>
+
+				<div style={{maxWidth:'200px'}}>
+					<label className="form-label mb-0">Status</label>
+					<select onChange={e=>fieldChange(e)} value={form.react_person_list_status}
+					className="form-select" name="react_person_list_status">
+				  
+					  <option value="single">Single</option>
+					  <option value="married">Married</option>
+					  <option value="divorced">Divorced</option>
+					  <option value="widowed">Widowed</option>
+					  <option value="deceased">Deceased</option>
+					</select>
+				</div>
+				
+
+				
+				
+			</div>
+		
+
+	)
+}
+let ListMain = ({listSetter, listState, adminState}) => {
+
+	let { Link, useParams, useLocation } = ReactRouterDOM
+	let { useEffect, useState, useContext,  } = React
+	let param = useParams()
+	let location = useLocation();
+	let { server, setListLink, listLink } = useContext(ContextServices)
+
+	let getList = async (data) => {
+		let statement = await query.getList(data);
+		let resp = await server(statement)
+		// console.log(resp)
+		listSetter.setList(resp)
+	}
+
+	useEffect( () => {
+		
+		let newPage = 1
+		let newPages = []
+		let newSearch =  ""
+		let newFilter =  ""
+		let newStatus =  ""
+		let newGender =  ""
+
+		if("page" in param && !isNaN(param.page)) {
+			newPage =Math.ceil( Math.abs(Number(param.page)))
+			
+			for(var i = 1; i <= newPage; i ++) {
+				newPages.push(i)
+			}
+			listSetter.setPage(newPage)
+			listSetter.setPages(newPages)
+		}
+		if("search" in param) {
+			newSearch = param.search == "_" ? "" : param.search
+			listSetter.setSearch( newSearch)
+		}
+		if("filter" in param) {
+			newFilter = param.filter == "_" ? "" : param.filter
+			listSetter.setFilter( newFilter)
+		}
+		if("status" in param) {
+			newStatus = param.status == "_" ? "" : param.status
+			listSetter.setStatus( newStatus)
+		}
+		if("gender" in param) {
+			newGender = param.gender == "_" ? "" : param.gender
+			listSetter.setGender( newGender)
+		}
+
+		getList({
+			search: newSearch,
+			filter: newFilter,
+			status: newStatus,
+			gender: newGender,
+			page: newPage,
+		})
+		
+		// listSetter.test()
+	
+
+
+	}, [])
+
+	useEffect(() => {
+		// console.log(listState, adminState)
+		console.log(location.pathname)
+	}, [listLink])
+	useEffect(() => {
+		
+		return () => {
+			setListLink(location.pathname)
+		}
+	}, [])
+
+	return (
+		<div className="row justify-content-center">
+			<h3>List</h3>
+			<div className="col-12 col-sm-10 col-md-8 col-lg-6">
+				
+				<ListSearch />
+				<div className="table-responsive">
+					<table className="table ">
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>First Name</th>
+								<th>Last Name</th>
+								<th>Action</th>
+							</tr>
+						</thead>
+
+						<tbody className="table-group-divider">
+						{
+							listState.list.map( x => (
+								<tr key={x.react_person_list_id}>
+									<td>{x.react_person_list_id}</td>
+									<td>{x.react_person_list_fname}</td>
+									<td>{x.react_person_list_lname}</td>
+									<td title={"/list/view/"+x.react_person_list_id}>
+										<Link to={"/list/view/"+x.react_person_list_id}>view</Link> 
+										{adminState.logged && 
+											<Link className="ms-2" to={"/list/edit/"+x.react_person_list_id}>edit</Link>
+										}
+									</td>
+								</tr>
+
+							))
+						}
+							
+							
+						</tbody>
+					</table>
+				</div>
+				<ListPages />
+
+			</div>
+		</div>
+	)
+}
+
+ListMain = withConnect(ListMain)
+let ListPages = ({listState, listSetter}) => {
+
+	let { useContext, useEffect, useState} = React
+	let { Link, useNavigate } = ReactRouterDOM
+	let { server, changeUrl } = useContext(ContextServices)	
+
+
+	let loadMore = () => {
+
+		let newPage = listState.pages[ listState.pages.length - 1] + 1
+		let newPages = [...listState.pages, newPage]
+		// console.log(newPage, newPages)
+		listSetter.setPages(newPages)
+		listSetter.setPage(newPages[newPages.length - 1])
+
+	}
+
+	let goto = (page) => {
+		listSetter.setPage(page)
+	}
+
+	let getList = async (data) => {
+		let statement = await query.getList(data);
+		let resp = await server(statement)
+		// console.log(resp.length)
+		listSetter.setList(resp)
+
+		if(resp.length == 0) {
+			
+			let last = listState.pages[listState.pages.length - 1];
+
+			listSetter.setPage(listState.page - 1)
+			listSetter.setPages(listState.pages.filter( i => i !== last))
+			listSetter.setEnd(true)
+		}
+	}
+
+
+	useEffect( () => {
+		console.log(listState.pages, listState.page)
+		changeUrl(listState);
+		getList(listState);
+	}, [listState.page])
+
+	return (
+		<div className="d-flex ">
+			<p className="align-self-center me-2">Page(s): </p>
+			<ul className="pagination pagination-sm d-flex flex-wrap" onClick={e=>e.preventDefault()}> 
+			  
+			    { listState.pages.map( x => (
+
+			    	<li className={"page-item "+(x == listState.page && "active")} key={x}>
+			    		
+			    		{ x == listState.page ?
+			    			 <span className="page-link">{x}</span>
+			    			:
+			    			<a onClick={()=>goto(x)}className="page-link" href="#/">{x}</a>
+			    		}
+			    	</li>
+
+			    ))
+
+			    }
+			    <li className="page-item">
+			    	<a onClick={loadMore} 
+			    	className={"page-link "+(listState.end?"disabled": "")} href="#/">{listState.end? "end": "more..."}</a>
+			    </li>
+			</ul>
+
+		</div>
+	)
+}
+
+ListPages = withConnect(ListPages)
+let ListSearch = ({listState, listSetter, adminState}) => {
+
+	let { useContext, useEffect, useState} = React
+	let { Link } = ReactRouterDOM
+	let { server, changeUrl } = useContext(ContextServices)	
+
+
+	
+	let setGender = (value) => {
+		listSetter.resetPage()
+		listSetter.setGender(value)
+	}
+
+	let setFilter = (value) => {
+		listSetter.resetPage()
+		listSetter.setFilter(value)
+	}
+
+	let setStatus = (value) => {
+		listSetter.resetPage()
+		listSetter.setStatus(value)
+	}
+
+	let reset = (e) => {
+		e.preventDefault();
+		listSetter.reset()
+		listSetter.resetPage()
+		// search();
+	}
+
+	let search = async (click) => {
+		// console.log({listState})
+
+		let { search, gender, status, filter, page} = listState
+
+		let statement = await query.getList({ search, gender, status, filter, page})
+
+		// console.log(statement)
+		let resp = await server(statement)
+		console.log(resp)
+		if(click) listSetter.resetPage()
+		listSetter.setList(resp)
+
+		
+
+	}
+
+
+
+	useEffect( () => {
+		changeUrl(listState)
+	}, [listState.page, listState.search])
+
+	useEffect( () => {
+		search();
+
+	}, [listState.filter, listState.gender, listState.status])
+
+	return (
+		<div>
+			<div className="mb-1 d-flex mt-3 ">
+
+				 <input name="search" value={listState.search}
+				 onChange={e=>listSetter.setSearch(e.target.value)}
+				 placeholder="search..."
+				 type="text" className="form-control" />
+				<button className="btn btn-primary ms-1" onClick={()=>search(true)}>Find</button>
+				{adminState.logged &&
+					<Link className="btn btn-outline-primary ms-1" to="/list/add">Add</Link>
+				}
+				
+			</div>
+			<div className="d-flex flex-wrap">
+
+				<div className="dropdown me-2" onClick={e=>e.preventDefault()}>
+					Filter: <span> </span>
+				  <a className=" dropdown-toggle " href="#/" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				  	{listState.filter == "" ? "Any" : listState.filter == "fname" ? "First Name" : "Last Name"}
+				  </a>
+
+				  <ul className="dropdown-menu" >
+				   	<li><a onClick={()=>setFilter("")} className="dropdown-item" href="#/">Any</a></li>
+				    <li><a onClick={()=>setFilter("fname")} className="dropdown-item" href="#/">First Name</a></li>
+				    <li><a onClick={()=>setFilter("lname")} className="dropdown-item" href="#/">Last Name</a></li>
+				    
+				  </ul>
+				</div>
+
+				<div className="dropdown me-2" onClick={e=>e.preventDefault()}>
+					Gender: <span> </span>
+				  <a className=" dropdown-toggle text-capitalize" href="#/" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				  	{listState.gender == "" ? "Any" : listState.gender}
+				  </a>
+
+				  <ul className="dropdown-menu" >
+				   	<li><a onClick={()=>setGender("")} className="dropdown-item" href="#/">Any</a></li>
+				    <li><a onClick={()=>setGender("male")} className="dropdown-item" href="#/">Male</a></li>
+				    <li><a onClick={()=>setGender("female")} className="dropdown-item" href="#/">Female</a></li>
+				    
+				  </ul>
+				</div>
+				
+				<div className="dropdown me-2" onClick={e=>e.preventDefault()}>
+					Status: <span> </span>
+				  <a className=" dropdown-toggle text-capitalize" href="#/" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+				  	{listState.status == "" ? "any" : listState.status}
+				  </a>
+
+				  <ul className="dropdown-menu" >
+				   	<li><a onClick={()=>setStatus("")} className="dropdown-item" href="#/">Any</a></li>
+				    <li><a onClick={()=>setStatus("single")} className="dropdown-item" href="#/">Single</a></li>
+				    <li><a onClick={()=>setStatus("married")} className="dropdown-item" href="#/">Married</a></li>
+				    <li><a onClick={()=>setStatus("divorced")} className="dropdown-item" href="#/">Divorced</a></li>
+				    <li><a onClick={()=>setStatus("widowed")} className="dropdown-item" href="#/">Widowed</a></li>
+				    <li><a onClick={()=>setStatus("deceased")} className="dropdown-item" href="#/">Deceased</a></li>
+				  </ul>
+				</div>
+
+				<a onClick={e=>reset(e)} href="#/" className="badge bg-primary">Reset</a>
+			</div>
+
+		</div>
+	)
+}
+
+ListSearch = withConnect(ListSearch)
+let ListView = ({adminState}) => {
+
+	let { useEffect, useContext, useState } = React
+	let {useParams, useNavigate} = ReactRouterDOM
+	let param = useParams()
+	let navigate = useNavigate();
+	let { server, listLink } = useContext(ContextServices)
+
+
+
+	let [info, setInfo] = useState({})
+	let [load, setLoad] = useState(true)
+
+	let getPerson = async (id) => {
+
+		let statemet = await query.getPerson(id)
+
+		let resp = await server(statemet)
+
+		console.log(resp)
+		if(resp.length == 0) {
+			navigate("/list")
+			return;
+		}
+
+		setInfo(resp[0])
+		setLoad(false)
+
+	}
+
+
+	useEffect( () => {
+
+		console.log({view: listLink})
+		// console.log(param)
+		if("id" in param && !isNaN(param.id)) {
+			let newId = Math.ceil(Math.abs(Number(param.id)))
+			getPerson(newId)
+
+		}
+		else navigate("/list")
+
+
+	}, [])
+
+	if(load) return (
+		<div>loading...</div>
+	)
+	return (
+		<div className="row justify-content-center">
+		<h3>Person Information</h3>
+			<div className="col-12 col-sm-8 col-md-6 col-lg-4">
+				
+				<p 
+					className="mb-2"> ID: {info.react_person_list_id}<br/>
+					Added: {info.react_person_list_date_added}
+				</p>
+				<div className="mb-0 ">
+					<p className="text-muted mb-0">First Name</p>
+					<p className="fs-4 mb-0 ">{info.react_person_list_fname}</p>
+				</div>
+
+				<div className="mb-0 ">
+					<p className="text-muted mb-0">Last Name</p>
+					<p className="fs-4 mb-0 ">{info.react_person_list_lname}</p>
+				</div>
+
+				<div className="mb-0 ">
+					<div className="row">
+						<div className="col-6">
+							<p className="text-muted mb-0">Birthday</p>
+							<p className="fs-4 mb-0 ">{info.react_person_list_bday}</p>
+						</div>
+						<div className="col-6">
+							<p className="text-muted mb-0">Status</p>
+							<p className="fs-4 mb-0 ">{info.react_person_list_status}</p>
+						</div>
+					</div>
+					
+				</div>
+
+				<div className="mb-0 ">
+					<p className="text-muted mb-0">Gender</p>
+					<p className="fs-4">{info.react_person_list_gender}</p>
+				</div>
+				<div className="text-end d-grid gap-2 d-sm-block ">
+					<button className="btn btn-outline-primary me-1"
+					onClick={()=>navigate(-1)}>Back</button>
+					{adminState.logged &&
+						<button className="btn btn-primary me-1">Edit</button>}
+				</div>
+				
+			</div>
+		</div>
+	)
+}
+
+ListView = withConnect(ListView)
+let Navbar = ({adminState, adminSetter}) => {
+
+	let {Link } = ReactRouterDOM;
+	let { useEffect } = React
+
+
+	useEffect(() => {
+		console.log(adminState)
+	}, [])
+
+	let logout = (e) => {
+		e.preventDefault();
+		adminSetter.logout();
+		// navigate("/")
+	}
+
+	return (
+	
+
+		<nav className="navbar navbar-expand-sm bg-primary ">
+		  <div className="container ">
+		    <a className="navbar-brand text-white" href="#/" >Navbar</a>
+		    <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+		      <span className="navbar-toggler-icon"></span>
+		    </button>
+		    <div className="collapse navbar-collapse" id="navbarNavAltMarkup">
+		      <div className="navbar-nav ms-auto ">
+		        	<Link className="nav-link text-white"  to="/">Home</Link> 
+					<Link className="nav-link text-white" to="/list">List</Link> 
+					{ adminState.logged ? 
+						<div className="d-flex ">
+							<Link className="nav-link text-white" to="/admin">Admin</Link> 
+							<a href="#/"  className="nav-link text-white" onClick={e => logout(e)}>Logout</a>
+						</div>
+						:
+						<div>
+							<Link className="nav-link text-white" to="/login">Login</Link>
+						</div>
+					}
+					
+		      </div>
+		    </div>
+		  </div>
+		</nav>
+
+	)
+}
+
+Navbar = withConnect(Navbar)
+const ContextServices = React.createContext();
+
+let ContextServicesProvider = (props) => {
+
+
+	// let {useLocation} = ReactRouterDOM;
+	let { useState, useEffect } = React;
+	let SERVER_URL = "http://localhost/reactperson/server.php";
+	// let location = useLocation();
+	let [listLink, setListLink] = useState("/list")
+
+
+	useEffect( () => {
+		// console.log(props)
+	}, [])
+
+	let server = data => {
+
+		let form = new FormData();
+
+		form.append("data", JSON.stringify(data));
+
+		let request = {
+			method: "POST",
+			body: form
+		};
+
+		if("react_person_admin_token" in props.adminState) {
+			request = { 
+				...request, 
+				headers: new Headers( {
+					"token" : props.adminState['react_person_admin_token'],
+					"id": props.adminState['react_person_admin_id']
+				} )
+			}
+		} 
+
+		return new Promise( (resolve, reject) => {
+			fetch(SERVER_URL, request)
+			.then(resp => resp.text())
+			.then(resp => {
+				
+	
+				// console.log(resp);
+				
+				if(resp == "error_expired_token") props.adminSetter.logout();
+				
+				try{
+					resolve(JSON.parse(resp))
+
+				}catch(err) {
+					console.log(err)
+					
+					
+					resolve(false)
+				}
+				
+			}).catch( err  => {
+				reject({error: err})
+			})
+		})
+	}
+
+	let validate = (data) => {
+
+		let valid = true
+
+		data.forEach( (x, i) => {
+
+			if(x == "" || x == undefined || x == null) valid = false
+		})
+
+		return valid
+	}
+
+	let randomPerson = async () => {
+		let person = await fetch('https://randomuser.me/api/?nat=us,au,gb')
+
+		person = await person.json();
+
+		// console.log(person.results[0])
+
+		let status = ['single', 'married', 'divorced', 'widowed', 'deceased']
+
+		return {
+			react_person_list_fname: person.results[0].name.first,
+			react_person_list_lname: person.results[0].name.last,
+			react_person_list_gender: person.results[0].gender,
+			react_person_list_status: status[Math.floor(Math.random()*status.length)],
+			react_person_list_bday: person.results[0].dob.date.split("T")[0]
+		}
+	}
+
+	let changeUrl = (listState) => {
+		let { search, gender, status, filter, page} = listState;
+
+		let link = `#/list/search/${
+			search == ""? "_" : search
+		}/gender/${
+			gender == ""? "_" : gender
+		}/status/${
+			status == ""? "_" : status
+		}/filter/${
+			filter == ""? "_" : filter
+		}/page/${
+			page
+		}`
+		window.history.pushState({}, "", link)
+		return link
+	}
+
+	let test = () => {
+		return "test"
+	}
+
+
+	return (
+		<ContextServices.Provider value={{
+			test,
+			server,
+			validate,
+			randomPerson,
+			changeUrl,
+			listLink,
+			setListLink
+		}}>
+			{ props.children }
+		</ContextServices.Provider>
+	)
+}
+
+ContextServicesProvider = withConnect(ContextServicesProvider);
+let Routings = ({adminState, adminSetter}) => {
+	let {Routes, Route, Outlet, Navigate, useLocation} = ReactRouterDOM;
+	let { useEffect, useState } = React;
+	let location = useLocation();
+
+	let [initLink] = useState(location.pathname)
+
+	useEffect( () => {
+		// console.log({initLink})
+	}, [initLink])
+
+	let NavGuard = () => {
+
+
+		return (
+			<div>
+			{ adminState.logged ?
+				
+				<Outlet />
+
+				:
+
+				<Navigate to="/login" replace/>
+
+			}
+			</div>
+		)
+	}
+
+	let AdminLogged = ({children}) => {
+
+		return (
+			adminState.logged ?
+				<Navigate to={initLink != "/login" ? initLink : "/admin"}/>
+			:
+			<div>
+				{children}
+			</div>
+
+		)
+	}
+
+	return(
+		<div>
+			<Routes>
+				<Route exact path="/" element={<Home />}/>
+				<Route path="/list" element={<List />}>	
+					<Route index element={<ListMain />}/>
+					<Route path="search/:search" element={<ListMain />}>					
+						<Route path="gender/:gender" element={<ListMain />}>					
+							<Route path="status/:status" element={<ListMain />}>
+								<Route path="filter/:filter" element={<ListMain />}>
+									<Route path="page/:page" element={<ListMain />}/>
+								</Route>
+							</Route>
+						</Route>
+					</Route>
+					<Route path="view/:id" element={<ListView />}/>
+					<Route  element={<NavGuard />}>
+						<Route path="add" element={<ListAdd />}/>
+						<Route path="edit/:id" element={<ListEdit />}/>
+					</Route>
+				</Route>
+				<Route path="/login" element={<AdminLogged><AdminLogin /></AdminLogged>}/>
+				<Route  element={<NavGuard />}>
+					<Route path="/admin" element={<Admin />} >
+						<Route index element={<AdminAccount />}/>
+						<Route exact path="password" element={<AdminPassword />}/>
+					</Route>
+				</Route>
+				<Route path="*" element={<p>not found</p>}/>
+			</Routes>
+
+		</div>	
+
+	)
+}
+
+Routings = withConnect(Routings)
+let App = ({adminState, adminSetter}) => {
+
+	let { useEffect, useContext } = React;
+	let {test} = React.useContext(ContextServices)
+	let { Outlet } = ReactRouterDOM;
+	let { server } = useContext(ContextServices);
+
+
+	let authenticate = () => {
+		try {
+			let auth = JSON.parse(window.localStorage.auth);
+				
+			adminSetter.adminSet({
+				react_person_admin_token: auth.token, 
+				react_person_admin_id: auth.id
+			})
+
+		} catch (err) {
+			console.log(err);
+		} finally {
+			window.localStorage.removeItem('auth');
+		}
+	}
+
+	useEffect( () => {
+		authenticate()
+	}, [])
+
+	useEffect( () => {
+
+		if("react_person_admin_token" in adminState && !adminState.logged) {
+			console.log(adminState)
+			server({auth: ""}).then(resp => {
+				console.log(resp)
+				if(resp == false) return;
+
+				adminSetter.login(resp)
+			})
+		}
+	}, [adminState])
+
+	window.onbeforeunload = () => {
+
+		if(adminState.logged) {
+			window.localStorage.auth = JSON.stringify({
+				token: adminState.react_person_admin_token, 
+				id: adminState.react_person_admin_id 
+			})
+		}
+			
+		
+	}
+
+	return (
+		<div>
+			<Navbar />
+			
+			<div className="container">
+				<Routings />
+			</div>	
+		</div>
+	)
+}
+
+App = withConnect(App)
+console.log(window.history)
+
+
+
+const Root = ReactDOM.createRoot(document.getElementById('app'));
+Root.render(
+	<ReactRouterDOM.HashRouter>
+		<ReactRedux.Provider store={reduxAdminStore} context={reduxAdminContext}>
+			<ReactRedux.Provider store={reduxListStore} context={reduxListContext}>
+				<ContextServicesProvider>
+					<App />
+				</ContextServicesProvider>
+			</ReactRedux.Provider>
+		</ReactRedux.Provider>
+	</ReactRouterDOM.HashRouter>
+)

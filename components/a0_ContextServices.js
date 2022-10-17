@@ -109,6 +109,12 @@ let ContextServicesProvider = (props) => {
 		return link
 	}
 
+	let time = (value, type) => {
+
+		if(type == 1)return moment(value).format("MMM D, YYYY");
+		if(type == 2)return moment(value).format("MMM D, YYYY h:mm a")
+	}
+
 	let test = () => {
 		return "test"
 	}
@@ -122,7 +128,8 @@ let ContextServicesProvider = (props) => {
 			randomPerson,
 			changeUrl,
 			listLink,
-			setListLink
+			setListLink,
+			time
 		}}>
 			{ props.children }
 		</ContextServices.Provider>

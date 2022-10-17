@@ -38,6 +38,7 @@
 	<script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.development.js" crossorigin></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.5/redux.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/react-redux/7.2.2/react-redux.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 </head>
 <body>
 	<div id="app"></div>

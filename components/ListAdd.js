@@ -1,7 +1,8 @@
 let ListAdd = () => {
 	let { useContext, useEffect, useState } = React
+	let { useNavigate } = ReactRouterDOM
 	let {server, randomPerson, validate} = useContext(ContextServices);
-
+	let navigate = useNavigate();
 
 	let [form, setForm] = useState({
 		react_person_list_fname: "",

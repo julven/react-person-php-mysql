@@ -130,15 +130,35 @@ function authenticate($auth, $cheking) {
 
 }
 
+function statement_check ($statement, $word) {
+
+	$statement = strtolower($statement);
+	$valid = true;
+	$words = array_diff(["select", "update", "delete", "insert"], [$word]);
+
+	foreach ($words as $value) {
+		if(strpos($statement, $value)) $valid = false;
+	}
+
+	return $valid;
+}
 
 
-function query_read($data) {
+function query_read($data, $sensitive) {
+	if(!statement_check($data[0], "select")) {
+		echo "error_read_statement_only";
+		die();
+	}
 	$connection = create_connection();
 	$query = query_execute($data, $connection);
 	$result = $query->get_result();
 	$resp = [];
 	while ($row = $result->fetch_assoc()) {
 		// code...
+		if($sensitive) {
+			unset($row["react_person_admin_password"]);
+			unset($row["react_person_admin_token_expire"]);
+		} 
 		$resp[] = $row;
 	}
 
@@ -147,6 +167,10 @@ function query_read($data) {
 }
 
 function query_write($data) {
+	if(!statement_check($data[0], "insert")) {
+		echo "error_write_statement_only";
+		die();
+	}
 	$connection = create_connection();
 	$query = query_execute($data, $connection);
 	echo json_encode(["insert_id"=>$connection->insert_id]);
@@ -154,14 +178,25 @@ function query_write($data) {
 }
 
 function query_edit($data) {
+	if(!statement_check($data[0], "update")) {
+		echo "error_edit_statement_only";
+		die();
+	}
 	$connection = create_connection();
 	$query = query_execute($data, $connection);
 	echo json_encode(["affected_rows"=>$query->affected_rows]);
 	return;
 }
 
-function query_delete() {
-	
+function query_delete($data) {
+	if(!statement_check($data[0], "delete")) {
+		echo "error_delete_statement_only";
+		die();
+	}
+	$connection = create_connection();
+	$query = query_execute($data, $connection);
+	echo json_encode(["affected_rows"=>$query->affected_rows]);
+	return;
 }
 
 
@@ -173,29 +208,24 @@ function query_statement($client) {
 	$table = array_keys($client[$type])[0];
 
 	if($type == "read") {
-		query_read($client['read'][$table]);
+		$sensitive = false;
+
+		if($table == "react_person_admin") $sensitive = true;
+		query_read($client['read'][$table], $sensitive);
 	} 
 	else if(isset(getallheaders()['id']) && isset(getallheaders()['token'])) {
 
 		$auth = ['id'=>getallheaders()['id'], 'token' => getallheaders()['token']];
 		authenticate($auth, null);
-		if($type == "write") {
-			
-			query_write($client['write'][$table]);
-		}
+		if($type == "write") query_write($client['write'][$table]);
 
-		else if($type == "edit") {
-			
-			query_edit($client['edit'][$table]);
-		} 
-		
-		else if ($type == "delete") {
-			
-			query_delete();	
-		} 
-
+		else if($type == "edit") query_edit($client['edit'][$table]);	 
+	
+		else if ($type == "delete") query_delete($client['delete'][$table]);	
+		 
 		else {
-
+			echo "error_unknown_statement";
+			die();
 		}
 	}
 

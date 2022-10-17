@@ -4,7 +4,7 @@ let ListView = ({adminState}) => {
 	let {useParams, useNavigate} = ReactRouterDOM
 	let param = useParams()
 	let navigate = useNavigate();
-	let { server, listLink } = useContext(ContextServices)
+	let { server, listLink, time } = useContext(ContextServices)
 
 
 
@@ -13,9 +13,9 @@ let ListView = ({adminState}) => {
 
 	let getPerson = async (id) => {
 
-		let statemet = await query.getPerson(id)
+		let statement = await query.getPerson(id)
 
-		let resp = await server(statemet)
+		let resp = await server(statement)
 
 		console.log(resp)
 		if(resp.length == 0) {
@@ -26,6 +26,26 @@ let ListView = ({adminState}) => {
 		setInfo(resp[0])
 		setLoad(false)
 
+	}
+
+	let deletePerson = async (id) => {
+
+		let conf = window.confirm("delete this person?")
+
+		if(!conf) return;
+
+		let statement = await query.deletePerson(id)
+		// console.log(statement)
+		// return
+		let resp = await server(statement)
+
+		if(resp.affected_rows > 0) {
+			alert("person successfully deleted!");
+			navigate(-1);
+			return;
+		}
+		alert("person was not found...");
+		return;
 	}
 
 
@@ -53,8 +73,9 @@ let ListView = ({adminState}) => {
 				
 				<p 
 					className="mb-2"> ID: {info.react_person_list_id}<br/>
-					Added: {info.react_person_list_date_added}
+					Added: {time(info.react_person_list_date_added, 2)}
 				</p>
+				<hr/>
 				<div className="mb-0 ">
 					<p className="text-muted mb-0">First Name</p>
 					<p className="fs-4 mb-0 ">{info.react_person_list_fname}</p>
@@ -69,7 +90,7 @@ let ListView = ({adminState}) => {
 					<div className="row">
 						<div className="col-6">
 							<p className="text-muted mb-0">Birthday</p>
-							<p className="fs-4 mb-0 ">{info.react_person_list_bday}</p>
+							<p className="fs-4 mb-0 ">{time(info.react_person_list_bday, 1)}</p>
 						</div>
 						<div className="col-6">
 							<p className="text-muted mb-0">Status</p>
@@ -83,11 +104,13 @@ let ListView = ({adminState}) => {
 					<p className="text-muted mb-0">Gender</p>
 					<p className="fs-4">{info.react_person_list_gender}</p>
 				</div>
+				<hr/>
 				<div className="text-end d-grid gap-2 d-sm-block ">
 					<button className="btn btn-outline-primary me-1"
 					onClick={()=>navigate(-1)}>Back</button>
 					{adminState.logged &&
-						<button className="btn btn-primary me-1">Edit</button>}
+						<button onClick={e => {deletePerson(info.react_person_list_id)}}
+						className="btn btn-danger me-1">Delete</button>}
 				</div>
 				
 			</div>

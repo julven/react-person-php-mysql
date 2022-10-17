@@ -2,7 +2,7 @@ let Home = ({adminState, listState, listSetter}) => {
 
 	let { useState, useEffect, useContext } = React
 	let { Link } = ReactRouterDOM
-	let { server } = useContext(ContextServices)
+	let { server, time } = useContext(ContextServices)
 	let [load, setLoad] = useState(true)
 
 	let getSummary = async () => {
@@ -46,7 +46,7 @@ let Home = ({adminState, listState, listSetter}) => {
 						</tr>
 						<tr>
 							<td>Birthday</td>
-							<td className="text-capitalize">{adminState.react_person_admin_bday}</td>
+							<td className="text-capitalize">{time(adminState.react_person_admin_bday, 1)}</td>
 						</tr>
 						<tr>
 							<td>Gender</td>

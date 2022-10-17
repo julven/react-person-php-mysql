@@ -80,7 +80,6 @@ let ListEdit = ({listState}) => {
 		}
 		else navigate("/list")
 
-		console.log(initLink)
 	}, [])
 
 	useEffect(() => {

@@ -177,6 +177,18 @@ const query = {
 
 		return statement
 	},
+	deletePerson: async (id) => {
+		let statement = {
+			delete: {
+				react_person_list: [
+					"delete from react_person_list where react_person_list_id = ?",
+					"i",
+					[id]
+				]
+			}
+		}
+		return statement
+	},
 	listSummary: async () => {
 		let statement = {
 			read: {

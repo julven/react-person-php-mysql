@@ -42,7 +42,7 @@ let ListAdd = () => {
 		let valid = validate(field)
 		console.log(valid)
 
-		if(!validate) {
+		if(!valid) {
 			alert("all fields must not be empty!");
 			return;
 		}

@@ -63,7 +63,14 @@ let Home = ({adminState, listState, listSetter}) => {
 			<div className="col-12 col-sm-6 col-md-5 col-lg-4">
 				<h4>List Summary</h4>
 				<hr className="mt-0"/>
-				{ !load &&
+				{ load ?
+					<div className="text-center my-4">
+						<div className="spinner-border text-primary" role="status">
+						  <span className="visually-hidden">Loading...</span>
+						</div>
+					</div>
+
+					:
 				<table className="table table-sm table-borderless">
 					<tbody>
 						<tr>

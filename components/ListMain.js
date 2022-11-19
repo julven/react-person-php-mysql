@@ -106,9 +106,9 @@ let ListMain = ({listSetter, listState, adminState}) => {
 						{
 							listState.list.map( x => (
 								<tr key={x.react_person_list_id}>
-									<td>{x.react_person_list_id}</td>
-									<td>{x.react_person_list_fname}</td>
-									<td>{x.react_person_list_lname}</td>
+									<td className="text-capitalize">{x.react_person_list_id}</td>
+									<td className="text-capitalize">{x.react_person_list_fname}</td>
+									<td className="text-capitalize">{x.react_person_list_lname}</td>
 									<td title={"/list/view/"+x.react_person_list_id}>
 										<Link to={"/list/view/"+x.react_person_list_id}>view</Link> 
 										{adminState.logged && 

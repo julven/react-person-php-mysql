@@ -51,11 +51,11 @@ let ListSearch = ({listState, listSetter, adminState}) => {
 
 	useEffect( () => {
 		changeUrl(listState)
-	}, [listState.page, listState.search])
+	}, [listState.page, listState.search, ])
 
 	useEffect( () => {
 		search();
-
+		changeUrl(listState)
 	}, [listState.filter, listState.gender, listState.status])
 
 	return (

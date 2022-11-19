@@ -57,7 +57,7 @@ let ListForm = ({form, fieldChange}) => {
 					<label className="form-label mb-0">Status</label>
 					<select onChange={e=>fieldChange(e)} value={form.react_person_list_status}
 					className="form-select" name="react_person_list_status">
-				  
+				  	 <option value="">-select-</option>
 					  <option value="single">Single</option>
 					  <option value="married">Married</option>
 					  <option value="divorced">Divorced</option>

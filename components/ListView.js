@@ -77,24 +77,24 @@ let ListView = ({adminState}) => {
 				</p>
 				<hr/>
 				<div className="mb-0 ">
-					<p className="text-muted mb-0">First Name</p>
-					<p className="fs-4 mb-0 ">{info.react_person_list_fname}</p>
+					<p className="text-muted mb-0 ">First Name</p>
+					<p className="fs-4 mb-0  text-capitalize">{info.react_person_list_fname}</p>
 				</div>
 
 				<div className="mb-0 ">
 					<p className="text-muted mb-0">Last Name</p>
-					<p className="fs-4 mb-0 ">{info.react_person_list_lname}</p>
+					<p className="fs-4 mb-0  text-capitalize">{info.react_person_list_lname}</p>
 				</div>
 
 				<div className="mb-0 ">
 					<div className="row">
 						<div className="col-6">
 							<p className="text-muted mb-0">Birthday</p>
-							<p className="fs-4 mb-0 ">{time(info.react_person_list_bday, 1)}</p>
+							<p className="fs-4 mb-0  text-capitalize">{time(info.react_person_list_bday, 1)}</p>
 						</div>
 						<div className="col-6">
 							<p className="text-muted mb-0">Status</p>
-							<p className="fs-4 mb-0 ">{info.react_person_list_status}</p>
+							<p className="fs-4 mb-0  text-capitalize">{info.react_person_list_status}</p>
 						</div>
 					</div>
 					
@@ -102,7 +102,7 @@ let ListView = ({adminState}) => {
 
 				<div className="mb-0 ">
 					<p className="text-muted mb-0">Gender</p>
-					<p className="fs-4">{info.react_person_list_gender}</p>
+					<p className="fs-4  text-capitalize">{info.react_person_list_gender}</p>
 				</div>
 				<hr/>
 				<div className="text-end d-grid gap-2 d-sm-block ">

@@ -1,7 +1,7 @@
 let ListEdit = ({listState}) => {
 
 	let { useEffect, useState, useContext} = React
-	let { server, validate, listLink } = useContext(ContextServices)
+	let { server, validate, listLink, time } = useContext(ContextServices)
 	let { useNavigate, useParams } = ReactRouterDOM
 	let navigate = useNavigate()
 	let param = useParams()
@@ -95,7 +95,7 @@ let ListEdit = ({listState}) => {
 				<div className="col-12 col-sm-8 col-md-6 col-lg-4">
 					<p 
 						className="mb-2"> ID: {form.react_person_list_id}<br/>
-						Added: {form.react_person_list_date_added}
+						Added: {time(form.react_person_list_date_added, 2)}
 					</p>
 				</div>
 			</div>

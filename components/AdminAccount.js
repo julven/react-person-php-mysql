@@ -39,6 +39,8 @@ let AdminAccount = ({adminSetter, adminState}) => {
 		console.log(resp)
 		if(resp.affected_rows > 0) {
 			alert("admin account successfully updated!")
+
+			adminSetter.adminSet(form)
 			return;
 		}else alert("nothing has changed...")
 	}

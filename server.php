@@ -1,6 +1,22 @@
 <?php
 date_default_timezone_set("Asia/Manila");
 $client = [];
+
+
+if (!function_exists('getallheaders')) {
+
+    function getallheaders() {
+        $headers = [];
+       foreach ($_SERVER as $name => $value) {
+           if (substr($name, 0, 5) == 'HTTP_') {
+               $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+           }
+       }
+       return $headers;
+    }
+}
+
+
 if(isset($_POST['data'])) {
 	$client = json_decode($_POST['data'], true);
 
@@ -41,10 +57,10 @@ function create_connection () {
 		"",
 		"reactperson",
 
-		 // "sql307.epizy.com",
-   //      "epiz_32791845",
-   //      "30x2FgPRxBTa",
-   //      "epiz_32791845_reactperson"
+		//  "sql307.epizy.com",
+        // "epiz_32791845",
+        // "30x2FgPRxBTa",
+        // "epiz_32791845_reactperson"
 	);
 
 	if($connection->connect_error) {

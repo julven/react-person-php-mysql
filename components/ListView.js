@@ -70,12 +70,16 @@ let ListView = ({adminState}) => {
 		<div className="row justify-content-center">
 		<h3>Person Information</h3>
 			<div className="col-12 col-sm-8 col-md-6 col-lg-4">
-				
+
 				<p 
 					className="mb-2"> ID: {info.react_person_list_id}<br/>
 					Added: {time(info.react_person_list_date_added, 2)}
 				</p>
 				<hr/>
+				<div className="mb-0">
+					<p className="text-muted mb-0 ">Photo</p>
+					<img className="border rounded" src={info.react_person_list_image} style={{width: 100, height: 100}}/>
+				</div>
 				<div className="mb-0 ">
 					<p className="text-muted mb-0 ">First Name</p>
 					<p className="fs-4 mb-0  text-capitalize">{info.react_person_list_fname}</p>

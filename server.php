@@ -220,6 +220,48 @@ function query_delete($data) {
 	return;
 }
 
+function upload_image ($id, $image64) {
+
+
+	$path_file = "images/img_".$id.".jpeg";
+
+	file_put_contents($path_file, file_get_contents($image64));
+
+	$statement = "UPDATE react_person_list set react_person_list_image = ? where react_person_list_id = ?";
+	$connection = create_connection();
+	$query = $connection->prepare($statement);
+	$query->bind_param("si", $path_file, $id);
+	$query->execute();
+	echo json_encode(["path" => $path_file]);
+	
+
+}
+
+function generate_image () {
+	$curl = curl_init();
+
+	curl_setopt_array($curl, array(
+	  CURLOPT_URL => 'https://thispersondoesnotexist.com/',
+	  CURLOPT_RETURNTRANSFER => true,
+	  CURLOPT_ENCODING => '',
+	  CURLOPT_MAXREDIRS => 10,
+	  CURLOPT_TIMEOUT => 0,
+	  CURLOPT_FOLLOWLOCATION => true,
+	  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+	  CURLOPT_CUSTOMREQUEST => 'GET',
+	));
+
+	$response = curl_exec($curl);
+
+	$image = base64_encode($response);
+
+	curl_close($curl);
+	echo json_encode(["image" => $image]);
+
+
+	
+}
+
 
 function query_statement($client) {
 // 
@@ -242,7 +284,11 @@ function query_statement($client) {
 
 		else if($type == "edit") query_edit($client['edit'][$table]);	 
 	
-		else if ($type == "delete") query_delete($client['delete'][$table]);	
+		else if ($type == "delete") query_delete($client['delete'][$table]);
+
+		else if($type == "generate") generate_image();
+
+		else if($type == "upload") upload_image($client["upload"]["id"],$client["upload"]["image64"]);
 		 
 		else {
 			echo "error_unknown_statement";

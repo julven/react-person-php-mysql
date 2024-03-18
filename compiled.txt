@@ -834,9 +834,9 @@ let List = () => {
 	)
 }
 let ListAdd = () => {
-	let { useContext, useEffect, useState } = React
+	let { useContext, useEffect, useState, useRef } = React
 	let { useNavigate } = ReactRouterDOM
-	let {server, randomPerson, validate} = useContext(ContextServices);
+	let {server, randomPerson, validate, uploadImage, generateImage} = useContext(ContextServices);
 	let navigate = useNavigate();
 
 	let [form, setForm] = useState({
@@ -846,6 +846,8 @@ let ListAdd = () => {
 		react_person_list_status:  "",
 		react_person_list_bday:  ""
 	})
+	let [image, setImage] = useState("")
+	let upload = useRef(null)
 
 	let fieldChange =e=> {
 
@@ -857,11 +859,15 @@ let ListAdd = () => {
 
 	let getRandomPerson = async () => {
 
+		
 		let resp = await randomPerson();
 		setForm({
 			...form,
 			...resp,
 		})
+		let result = await generateImage();
+
+		setImage(result)
 	}
 
 	let addPerson = async () => {
@@ -896,6 +902,18 @@ let ListAdd = () => {
 				react_person_list_status:  "",
 				react_person_list_bday:  ""
 			})
+
+
+			if(image) {
+				server({upload: {
+					react_person_list: "",
+					id: resp.insert_id,
+					image64: image
+				}}).then(resp => {
+					setImage("")
+				})
+			}
+
 			alert("new person successfully added!")
 			return
 		}
@@ -906,6 +924,17 @@ let ListAdd = () => {
 		}
 	}
 
+	let handleUploadImage = async (e) => {
+
+		let result =  await uploadImage(e.target.files[0])
+		console.log(result)
+		setImage(result)
+		
+		
+	}
+
+	
+
 	useEffect( () => {
 		console.log(form)
 	}, [form])
@@ -913,10 +942,24 @@ let ListAdd = () => {
 	return (
 		<div>
 		<h4>Add Person</h4>
+
 			<div className="row justify-content-center">
+				<div className="col-12 col-sm-8 col-md-6 col-lg-4">
+					Photo
+					<div className="border" style={{width: 100, height: 100, marginBottom: 5}}>
 
+						<img src={image} className="rounded float-start" style={{width: "100%"}}/>
+					</div>
+					<input type="file" accept="image/*" hidden ref="upload" ref={upload} onChange={handleUploadImage}/>
+					<button className="btn btn-sm btn-primary" style={{width: 100}} onClick={() => upload.current.click()}>Upload</button>
+					
+
+				</div>	
+			</div>
+			<div className="row justify-content-center">
+				
 				<ListForm type="add" form={form} fieldChange={fieldChange}/>
-
+				
 				<div className="text-end mt-3 d-grid gap-2 d-sm-block"> 
 					<button onClick={() => navigate(-1)}
 					className="btn btn-outline-secondary me-1">Back</button>
@@ -1070,7 +1113,8 @@ let ListForm = ({form, fieldChange}) => {
 	return (
 		
 			<div className="col-12 col-sm-8 col-md-6 col-lg-4">
-		
+				
+				
 			
 				<div className="mb-1">
 				  <label  className="form-label mb-0">First Name</label>
@@ -1544,12 +1588,16 @@ let ListView = ({adminState}) => {
 		<div className="row justify-content-center">
 		<h3>Person Information</h3>
 			<div className="col-12 col-sm-8 col-md-6 col-lg-4">
-				
+
 				<p 
 					className="mb-2"> ID: {info.react_person_list_id}<br/>
 					Added: {time(info.react_person_list_date_added, 2)}
 				</p>
 				<hr/>
+				<div className="mb-0">
+					<p className="text-muted mb-0 ">Photo</p>
+					<img className="border rounded" src={info.react_person_list_image} style={{width: 100, height: 100}}/>
+				</div>
 				<div className="mb-0 ">
 					<p className="text-muted mb-0 ">First Name</p>
 					<p className="fs-4 mb-0  text-capitalize">{info.react_person_list_fname}</p>
@@ -1754,6 +1802,84 @@ let ContextServicesProvider = (props) => {
 		return link
 	}
 
+	
+
+	let uploadImage =  async (img) => {
+
+		// console.log(img)
+		let reader = new FileReader()
+		
+		return new Promise( resolve => {
+			reader.onload = e => {
+				// setImage(e.target.result)
+				let tempImg = document.createElement("img")
+				tempImg.onload = () => {
+					let canvas = document.createElement("canvas")
+					canvas.height = 100;
+					canvas.width = 100;
+					var ctx = canvas.getContext("2d")
+					ctx.drawImage(tempImg, 0, 0, 100,100)
+					var dataURL = canvas.toDataURL(img.type)
+					resolve(dataURL);
+					canvas.remove()
+					tempImg.remove()
+				}
+				tempImg.src = e.target.result
+
+			} 
+
+			reader.readAsDataURL(img)
+		})
+
+	}
+
+	let generateImage = async () => {
+		// console.log("test")
+
+		let result = await new Promise( resolve => {
+			server({generate: {react_person_list: {}}}).then( resp => {
+
+
+				// console.log(resp)
+				// return
+				let img64 = "data:image/jpeg;base64,"+resp.image;
+
+
+				let file = new File(
+					[Uint8Array.from(btoa(img64), m => m.codePointAt(0))],
+					"falseperson.jpeg",
+					{type : "image/jpeg"}
+					)
+				// console.log(file);
+
+				resolve({img64, file});
+				
+
+			})
+		})
+
+		
+		let result2 = await new Promise(resolve => {
+			let tempImg = document.createElement("img")
+			tempImg.onload = () => {
+				let canvas = document.createElement("canvas")
+				canvas.height = 100;
+				canvas.width = 100;
+				var ctx = canvas.getContext("2d")
+				ctx.drawImage(tempImg, 0, 0, 100,100)
+				var dataURL = canvas.toDataURL(result.file.type)
+				resolve(dataURL)
+				canvas.remove()
+				tempImg.remove()
+			}
+			tempImg.src = result.img64
+		})
+		
+		// console.log(result2)
+		return result2
+		
+	}
+
 	let time = (value, type) => {
 
 		if(type == 1)return moment(value).format("MMM D, YYYY");
@@ -1764,7 +1890,6 @@ let ContextServicesProvider = (props) => {
 		return "test"
 	}
 
-
 	return (
 		<ContextServices.Provider value={{
 			test,
@@ -1774,7 +1899,9 @@ let ContextServicesProvider = (props) => {
 			changeUrl,
 			listLink,
 			setListLink,
-			time
+			time,
+			uploadImage,
+			generateImage
 		}}>
 			{ props.children }
 		</ContextServices.Provider>

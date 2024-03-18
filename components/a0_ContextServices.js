@@ -110,6 +110,84 @@ let ContextServicesProvider = (props) => {
 		return link
 	}
 
+	
+
+	let uploadImage =  async (img) => {
+
+		// console.log(img)
+		let reader = new FileReader()
+		
+		return new Promise( resolve => {
+			reader.onload = e => {
+				// setImage(e.target.result)
+				let tempImg = document.createElement("img")
+				tempImg.onload = () => {
+					let canvas = document.createElement("canvas")
+					canvas.height = 100;
+					canvas.width = 100;
+					var ctx = canvas.getContext("2d")
+					ctx.drawImage(tempImg, 0, 0, 100,100)
+					var dataURL = canvas.toDataURL(img.type)
+					resolve(dataURL);
+					canvas.remove()
+					tempImg.remove()
+				}
+				tempImg.src = e.target.result
+
+			} 
+
+			reader.readAsDataURL(img)
+		})
+
+	}
+
+	let generateImage = async () => {
+		// console.log("test")
+
+		let result = await new Promise( resolve => {
+			server({generate: {react_person_list: {}}}).then( resp => {
+
+
+				// console.log(resp)
+				// return
+				let img64 = "data:image/jpeg;base64,"+resp.image;
+
+
+				let file = new File(
+					[Uint8Array.from(btoa(img64), m => m.codePointAt(0))],
+					"falseperson.jpeg",
+					{type : "image/jpeg"}
+					)
+				// console.log(file);
+
+				resolve({img64, file});
+				
+
+			})
+		})
+
+		
+		let result2 = await new Promise(resolve => {
+			let tempImg = document.createElement("img")
+			tempImg.onload = () => {
+				let canvas = document.createElement("canvas")
+				canvas.height = 100;
+				canvas.width = 100;
+				var ctx = canvas.getContext("2d")
+				ctx.drawImage(tempImg, 0, 0, 100,100)
+				var dataURL = canvas.toDataURL(result.file.type)
+				resolve(dataURL)
+				canvas.remove()
+				tempImg.remove()
+			}
+			tempImg.src = result.img64
+		})
+		
+		// console.log(result2)
+		return result2
+		
+	}
+
 	let time = (value, type) => {
 
 		if(type == 1)return moment(value).format("MMM D, YYYY");
@@ -120,7 +198,6 @@ let ContextServicesProvider = (props) => {
 		return "test"
 	}
 
-
 	return (
 		<ContextServices.Provider value={{
 			test,
@@ -130,7 +207,9 @@ let ContextServicesProvider = (props) => {
 			changeUrl,
 			listLink,
 			setListLink,
-			time
+			time,
+			uploadImage,
+			generateImage
 		}}>
 			{ props.children }
 		</ContextServices.Provider>

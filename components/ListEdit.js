@@ -1,14 +1,16 @@
 let ListEdit = ({listState}) => {
 
-	let { useEffect, useState, useContext} = React
-	let { server, validate, listLink, time } = useContext(ContextServices)
+	let { useEffect, useState, useContext, useRef} = React
+	let { server, validate, listLink, time, uploadImage,generateImage } = useContext(ContextServices)
 	let { useNavigate, useParams } = ReactRouterDOM
 	let navigate = useNavigate()
 	let param = useParams()
+	let upload = useRef(null)
 	
 
 	let [ id, setId] = useState(null)
 	let [form, setForm] = useState({})
+	let [newImage, setNewImage] = useState(false)
 	let [load, setLoad] = useState(true)
 
 	let fieldChange = (e) => {
@@ -60,13 +62,37 @@ let ListEdit = ({listState}) => {
 
 		console.log(resp)
 
-		if(resp.affected_rows > 0) {
+		if(newImage) {
+			
+			server({upload: {
+					react_person_list: "",
+					id: form.react_person_list_id,
+					image64: form.react_person_list_image
+				}}).then(resp => {
+					setNewImage(false)
+				})
+		}
+
+		if(resp.affected_rows > 0 || newImage) {
 			alert("person info successfuly updated!");
 			return
 		}
 
 		alert("nothing has changed...")
 
+	}
+
+	let handleUploadImage = async e => {
+		let result =  await uploadImage(e.target.files[0])
+		console.log(result)
+		setForm({...form, react_person_list_image: result})
+	}
+
+	let handleGenerateImage = async () => {
+		let result = await generateImage();
+
+		setForm({...form, react_person_list_image: result})
+		setNewImage(true)
 	}
 
 	useEffect( () => {
@@ -98,6 +124,22 @@ let ListEdit = ({listState}) => {
 						Added: {time(form.react_person_list_date_added, 2)}
 					</p>
 				</div>
+			</div>
+			<div className="row justify-content-center">
+				<div className="col-12 col-sm-8 col-md-6 col-lg-4">
+					Photo
+					<div className="border" style={{width: 100, height: 100, marginBottom: 5}}>
+
+						<img src={form.react_person_list_image} className="rounded float-start" style={{width: "100%"}}/>
+					</div>
+					<input type="file" accept="image/*" hidden ref="upload" ref={upload} onChange={handleUploadImage}/>
+					
+						<button className="btn btn-sm btn-primary mb-1" style={{width: 100}} onClick={() => upload.current.click()}>Upload</button>
+						
+					<br/>
+					
+					<button className="btn btn-sm btn-outline-secondary" style={{width: 100}} onClick={() => {handleGenerateImage()}}>Autofill</button>
+				</div>	
 			</div>
 			<div className="row justify-content-center">
 				

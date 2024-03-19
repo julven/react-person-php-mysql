@@ -42,7 +42,7 @@ let ContextServicesProvider = (props) => {
 			.then(resp => {
 				
 	
-				// console.log(resp);
+				console.log(resp);
 				
 				if(resp == "error_expired_token") props.adminSetter.logout();
 				

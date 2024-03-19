@@ -222,8 +222,16 @@ function query_delete($data) {
 
 function upload_image ($id, $image64) {
 
+	$random = substr(md5(mt_rand()), 0, 7);
+	$path_file = "images/img_".$id."_".$random.".jpeg";
 
-	$path_file = "images/img_".$id.".jpeg";
+
+	// echo json_encode(['exist' => file_exists($path_file), 'path' => $path_file]);
+	// return;
+
+	
+
+	if(file_exists($path_file)) unlink($path_file);
 
 	file_put_contents($path_file, file_get_contents($image64));
 
